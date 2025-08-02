@@ -70,12 +70,15 @@ func main() {
 	log = waLog.Stdout("Main", logLevel, true)
 
 	dbLog := waLog.Stdout("Database", logLevel, true)
+        ctx := context.TODO()
+	storeContainer, err := sqlstore.New(ctx,*dbDialect, *dbAddress, dbLog)
 	storeContainer, err := sqlstore.New(*dbDialect, *dbAddress, dbLog)
 	if err != nil {
 		log.Errorf("Failed to connect to database: %v", err)
 		return
 	}
-	device, err := storeContainer.GetFirstDevice()
+	ctx := context.TODO()
+	device, err := storeContainer.GetFirstDevice(ctx)
 	if err != nil {
 		log.Errorf("Failed to get device: %v", err)
 		return
@@ -191,7 +194,8 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Usage: pair-phone <number>")
 			return
 		}
-		linkingCode, err := cli.PairPhone(args[0], true, whatsmeow.PairClientChrome, "Chrome (Linux)")
+		ctx := context.TODO()
+		linkingCode, err := cli.PairPhone(ctx, args[0], true, whatsmeow.PairClientChrome, "Chrome (Linux)")
 		if err != nil {
 			panic(err)
 		}
@@ -203,7 +207,8 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Failed to connect: %v", err)
 		}
 	case "logout":
-		err := cli.Logout()
+		ctx := context.TODO()
+		err := cli.Logout(ctx)
 		if err != nil {
 			log.Errorf("Error logging out: %v", err)
 		} else {
@@ -220,7 +225,8 @@ func handleCmd(cmd string, args []string) {
 		}
 		resync := len(args) > 1 && args[1] == "resync"
 		for _, name := range names {
-			err := cli.FetchAppState(name, resync, false)
+			ctx := context.TODO()
+			err := cli.FetchAppState(ctx, name, resync, false)
 			if err != nil {
 				log.Errorf("Failed to sync app state: %v", err)
 			}
@@ -307,7 +313,8 @@ func handleCmd(cmd string, args []string) {
 		jid, _ := types.ParseJID(args[0])
 		fmt.Println(cli.SendChatPresence(jid, types.ChatPresence(args[1]), types.ChatPresenceMedia(args[2])))
 	case "privacysettings":
-		resp, err := cli.TryFetchPrivacySettings(false)
+		ctx := context.TODO()
+		resp, err := cli.TryFetchPrivacySettings(ctx, false)
 		if err != nil {
 			fmt.Println(err)
 		} else {
@@ -320,7 +327,8 @@ func handleCmd(cmd string, args []string) {
 		}
 		setting := types.PrivacySettingType(args[0])
 		value := types.PrivacySetting(args[1])
-		resp, err := cli.SetPrivacySetting(setting, value)
+		ctx := context.TODO()
+		resp, err := cli.SetPrivacySetting(ctx,setting, value)
 		if err != nil {
 			fmt.Println(err)
 		} else {
@@ -348,7 +356,8 @@ func handleCmd(cmd string, args []string) {
 			}
 		}
 	case "mediaconn":
-		conn, err := cli.DangerousInternals().RefreshMediaConn(false)
+		ctx := context.TODO()
+		conn, err := cli.DangerousInternals().RefreshMediaConn(ctx, false)
 
 		if err != nil {
 			log.Errorf("Failed to get media connection: %v", err)
@@ -849,7 +858,8 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Usage: setpushname <name>")
 			return
 		}
-		err := cli.SendAppState(appstate.BuildSettingPushName(strings.Join(args, " ")))
+		ctx := context.TODO()
+		err := cli.SendAppState(ctx, appstate.BuildSettingPushName(strings.Join(args, " ")))
 		if err != nil {
 			log.Errorf("Error setting push name: %v", err)
 		} else {
@@ -880,8 +890,8 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("invalid second argument: %v", err)
 			return
 		}
-
-		err = cli.SendAppState(appstate.BuildArchive(target, action, time.Time{}, nil))
+		ctx := context.TODO()
+		err = cli.SendAppState(ctx, appstate.BuildArchive(target, action, time.Time{}, nil))
 		if err != nil {
 			log.Errorf("Error changing chat's archive state: %v", err)
 		}
